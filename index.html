@@ -42,6 +42,11 @@
                 placeholder="Add a new task..." 
                 autocomplete="off"
             >
+            <select id="prioritySelect" aria-label="Task Priority">
+                <option value="Low">Low</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="High">High</option>
+            </select>
             <button onclick="addTodo()">Add</button>
         </div>
 
@@ -69,16 +74,17 @@
 
     <script>
         const todoInput = document.getElementById('todoInput');
+        const prioritySelect = document.getElementById('prioritySelect');
         const todoList = document.getElementById('todoList');
         const emptyState = document.getElementById('emptyState');
 
-        // Sample todos
+        // Sample todos with priority
         const sampleTodos = [
-            { text: 'Learn Git basics', completed: false },
-            { text: 'Complete section 8 video', completed: false },
-            { text: 'Practice Git commands', completed: true },
-            { text: 'Review data analytics course', completed: false },
-            { text: 'Prepare project presentation', completed: false }
+            { text: 'Learn Git basics', priority: 'High', completed: false },
+            { text: 'Continue with siger', priority: 'Medium', completed: false },
+            { text: 'Practice Git commands', priority: 'Medium', completed: true },
+            { text: 'Review data analytics course', priority: 'Low', completed: false },
+            { text: 'Prepare project presentation', priority: 'High', completed: false }
         ];
 
         // Initialize with sample data
@@ -106,6 +112,9 @@
             
             // Add stagger animation delay
             li.style.animationDelay = `${index * 0.05}s`;
+
+            // Fallback to 'Medium' if an existing saved task lacks a priority field
+            const priority = todo.priority || 'Medium';
             
             li.innerHTML = `
                 <input 
@@ -114,7 +123,7 @@
                     ${todo.completed ? 'checked' : ''} 
                     onchange="toggleTodo(${index})"
                 >
-                <span class="todo-text">${escapeHtml(todo.text)}</span>
+                <span class="todo-text">${escapeHtml(todo.text)} (${escapeHtml(priority)})</span>
                 <button class="delete-btn" onclick="deleteTodo(${index})">Delete</button>
             `;
             
@@ -123,14 +132,16 @@
 
         function addTodo() {
             const text = todoInput.value.trim();
+            const priority = prioritySelect.value;
             
             if (text === '') {
                 alert('Please enter a task!');
                 return;
             }
             
-            todos.push({ text: text, completed: false });
+            todos.push({ text: text, priority: priority, completed: false });
             todoInput.value = '';
+            prioritySelect.value = 'Medium'; // Reset dropdown to default
             saveTodos();
             loadTodos();
             todoInput.focus();
@@ -143,6 +154,14 @@
         }
 
         function deleteTodo(index) {
+            const todo = todos[index];
+
+            // Prevent deleting High priority tasks until marked as completed
+            if (todo.priority === 'High' && !todo.completed) {
+                alert('⚠️ High priority tasks cannot be deleted until they are marked as done!');
+                return;
+            }
+
             if (confirm('Are you sure you want to delete this task?')) {
                 const todoItems = document.querySelectorAll('.todo-item');
                 todoItems[index].classList.add('deleting');
@@ -270,7 +289,7 @@
         }
 
         function showAbout() {
-            alert('️📝 Todo Pro\n\nA beautiful, feature-rich todo list application.\n\nFeatures:\n✅ Add, complete, and delete tasks\n🌙 Dark/Light mode\n💾 Auto-save to local storage\n📥 Export/Import tasks\n📊 Live statistics\n\nMade with ❤️ using HTML, CSS & JavaScript');
+            alert('️📝 Todo Pro\n\nA beautiful, feature-rich todo list application.\n\nFeatures:\n✅ Add, complete, and delete tasks\n🚦 Task priority levels (Low, Medium, High)\n🌙 Dark/Light mode\n💾 Auto-save to local storage\n📥 Export/Import tasks\n📊 Live statistics\n\nMade with ❤️ using HTML, CSS & JavaScript');
         }
     </script>
 </body>
